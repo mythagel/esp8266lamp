@@ -1,4 +1,8 @@
-import datetime
+
+alarm = {
+    'time': (6, 0),
+    'days': [0, 1, 2, 3, 4]
+}
 
 tzinfo = [
     [639331200, 36000],

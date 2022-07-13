@@ -1,15 +1,15 @@
 import time
+import math
 import machine
 import ntptime
-#import settings
+import settings
 
 warmPwm = machine.PWM(machine.Pin(5), freq=1000)
 coolPwm = machine.PWM(machine.Pin(4), freq=1000)
 
-#ww.duty(0)
-#cw.duty(16)
-
 # TODO just have functions to write config files to set the timezone offsets / alarm time
+
+# TODO Startup indication
 
 # 3000 - 4350 = 100% ww, 0 -> 100% cw
 # 4351 - 5700 = 100% cw, 100 -> 0% ww
@@ -36,13 +36,18 @@ def localtime():
         offset = tz[1]
     return time.localtime(now + offset)
 
+#now = localtime()
+#if now[6] in settings.alarm['days']:    # valid alarm day
+#    pass
+
+
 # Fade ct over an hour
-interval = 120.0 / (5700 - 3000)   # TODO 3600.0
+interval = 3600.0 / (5700 - 3000)   # TODO 3600.0
 br_step = 1.0 / (5700 - 3000)
-br = 0.1
+br = 0
 for ct in range(3000, 5700):
-    setColour(ct, br);
+#    setColour(ct, br);
     br = br + br_step
-    time.sleep(interval)
+#    time.sleep(interval)
 
 setColour(3000, 0.0);
