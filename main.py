@@ -64,11 +64,12 @@ if __name__ == "__main__":
     nextAlarmTime = getNextAlarm()
 
     while True:
-        deltaNextAlarm = nextAlarmTime - localtime()
+        deltaNextAlarm = (nextAlarmTime - 3600) - localtime()
         if deltaNextAlarm > 3600:
             time.sleep(3600)
             ntptime.settime()
         else:
+            time.sleep(deltaNextAlarm)
             sunriseSequence(3600.0)
             time.sleep(120)
             setColour(3000, 0.0)
