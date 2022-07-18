@@ -71,6 +71,6 @@ if __name__ == "__main__":
         else:
             time.sleep(deltaNextAlarm)
             sunriseSequence(3600.0)
-            time.sleep(120)
+            time.sleep(15*60)
             setColour(3000, 0.0)
             nextAlarmTime = getNextAlarm()
