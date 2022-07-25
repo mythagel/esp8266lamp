@@ -8,6 +8,7 @@ import settings
 # NOTE: These pins are custom since the version I have didn't originally have an ESP8266 in it.
 warmPwm = machine.PWM(machine.Pin(5), freq=1000)
 coolPwm = machine.PWM(machine.Pin(4), freq=1000)
+maxBrightness = 0.5
 
 def localtime():
     import time
@@ -27,7 +28,7 @@ def setColour(ct : int, br : float):
     # ww = 3000, cw = 5700
     ww = clamp(1 - (ct - 4351) / (5700 - 4351))
     cw = clamp((ct - 3000) / (4350 - 3000))
-    br = clamp(br*br)
+    br = clamp(br*br) * maxBrightness
     warmPwm.duty(int(ww * 1023 * br))
     coolPwm.duty(int(cw * 1023 * br))
 
