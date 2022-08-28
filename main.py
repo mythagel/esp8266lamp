@@ -1,6 +1,7 @@
 import time
 import math
 import machine
+import network
 import ntptime
 import settings
 
@@ -62,6 +63,9 @@ def getNextAlarm():
     return nextTime
 
 if __name__ == "__main__":
+    ap_if = network.WLAN(network.AP_IF)
+    ap_if.active(False)
+
     nextAlarmTime = getNextAlarm()
 
     while True:
