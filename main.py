@@ -8,14 +8,12 @@ import settings
 
 # ESP8266 based sunrise alarm clock for Mirabella Genio Wi-Fi 7W LED Tube Lamp
 # NOTE: These pins match hardware for an esp-12 transplanted unit.
-redPwm = machine.PWM(machine.Pin(5), freq=1000)
-greenPwm = machine.PWM(machine.Pin(4), freq=1000)
-bluePwm = machine.PWM(machine.Pin(16), freq=1000)
-whitePwm = machine.PWM(machine.Pin(14), freq=1000)  # 12?
+redPwm = machine.PWM(machine.Pin(4), freq=100)
+greenPwm = machine.PWM(machine.Pin(12), freq=100)
+bluePwm = machine.PWM(machine.Pin(14), freq=100)
+whitePwm = machine.PWM(machine.Pin(5), freq=100)
 
 sw = machine.ADC(0)
-
-maxBrightness = 0.5
 
 def localtime():
     import time
@@ -238,10 +236,10 @@ def hsi_to_rgbw(H, S, I):
 
 def clamp(x : float): return max(0.0, min(x, 1.0))
 def lerp(a: float, b: float, t: float) -> float: return (1 - t) * a + t * b
-def setColour(ct : int, br : float):
+def getColour(ct : int, br : float):
     min_rgb = None
     max_rgb = None
-    for k, rgb in kelvin_table.items:
+    for k, rgb in sorted(kelvin_table.items()):
         if k == ct:
             min_rgb = (rgb, k)
             break
@@ -253,7 +251,7 @@ def setColour(ct : int, br : float):
             break
 
     rgb = None
-    if min_rgb is not None && max_rgb is not None:
+    if min_rgb is not None and max_rgb is not None:
         ((rmin, gmin, bmin), kmin) = min_rgb
         ((rmax, gmax, bmax), kmax) = max_rgb
         kt = (ct - kmin) / (kmax - kmin)
@@ -263,27 +261,36 @@ def setColour(ct : int, br : float):
     elif max_rgb is not None:
         (rgb, _) = max_rgb
 
-    br = clamp(br*br) * maxBrightness       # TODO still needed?
-
     (r, g, b) = rgb
     (h, s, i) = rgb_to_hsi(r, g, b)
-    (r, g, b, w) = hsi_to_rgbw(h, s, i * br)
+    return hsi_to_rgbw(h, s, i * br)
 
-    redPwm.duty(int((r / 255.0) * 1023))
-    greenPwm.duty(int((g / 255.0) * 1023))
-    bluePwm.duty(int((b / 255.0) * 1023))
-    whitePwm.duty(int((w / 255.0) * 1023))
+def setColour(ct : int, br : float):
+    (r, g, b, w) = getColour(ct, br)
+    setColourRGBW(r / 255.0, g / 255.0, b / 255.0, w / 255.0)
+
+def setColourRGBW(r, g, b, w):
+    r = int(r * 1023.0)
+    g = int(g * 1023.0)
+    b = int(b * 1023.0)
+    w = int(w * 1023.0)
+    redPwm.duty(r)
+    greenPwm.duty(g)
+    bluePwm.duty(b)
+    whitePwm.duty(w)
 
 def sunriseSequence(duration : float):
+    a = 1000
+    b = 10000
     # Fade ct over an hour
-    interval = duration / (10000 - 2000)
-    br_step = 1.0 / (10000 - 2000)
+    interval = duration / (b - a)
     br = 0
-    for ct in range(2000, 10000):
+    br_step = (1.0 - br) / (b - a)
+    for ct in range(a, b):
         setColour(ct, br)
         br += br_step
         time.sleep(interval)
-    setColour(10000, 1.0)
+    setColour(b, 1.0)
 
 def getNextAlarm():
     nextTime = localtime()
