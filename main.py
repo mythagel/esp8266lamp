@@ -182,22 +182,36 @@ def setColourRGBW(r, g, b, w):
     bluePwm.duty(b)
     whitePwm.duty(w)
 
-def sunriseSequence(duration : float):
+def sunriseSequence():
     a = 1000
     b = 10000
+    duration = 3600.0
     # Fade ct over an hour
     interval = duration / (b - a)
     br = 0
     br_step = (1.0 - br) / (b - a)
     for ct in range(a, b):
-        setColour(ct, br)
+        setColour(ct, br*br)
         br += br_step
         time.sleep(interval)
     setColour(b, 1.0)
+    time.sleep(15*60)
+    setColour(a, 0.0)
 
-def getNextAlarm():
+def bedtimeSequence():
+    (r, g, b) = settings.colour
+    duration = 3600
+    br = 0.4
+    br_step = br / duration
+    for i in range(0, duration):
+        setColourRGBW((r / 255.0) * br, (g / 255.0) * br, (b / 255.0) * br, 0);
+        br -= br_step
+        time.sleep(1)
+    setColourRGBW(0, 0, 0, 0)
+
+def getNextAlarmObject(alarm):
     nextTime = localtime()
-    alarmDaySeconds = (settings.alarm['time'][0] * 60 * 60) + (settings.alarm['time'][1] * 60)
+    alarmDaySeconds = (alarm['time'][0] * 60 * 60) + (alarm['time'][1] * 60)
 
     while True:
         nextLocalTime = time.localtime(nextTime)
@@ -205,19 +219,29 @@ def getNextAlarm():
 
         if nextDaySeconds > alarmDaySeconds:
             nextTime += (86400 - nextDaySeconds)
-        elif nextLocalTime[6] not in settings.alarm['days']:
+        elif nextLocalTime[6] not in alarm['days']:
             nextTime += (86400 - nextDaySeconds)
         else:
             nextTime += alarmDaySeconds - nextDaySeconds
             break
 
-    return nextTime
+    return (nextTime, alarm['action'])
+
+def getNextAlarm():
+    nextAlarm = None
+    for alarm in settings.alarm:
+        nextAlarmCandidate = getNextAlarmObject(alarm);
+        if nextAlarm is None:
+            nextAlarm = nextAlarmCandidate
+        elif nextAlarmCandidate[0] < nextAlarm[0]:
+            nextAlarm = nextAlarmCandidate
+    return nextAlarm
 
 if __name__ == "__main__":
     ap_if = network.WLAN(network.AP_IF)
     ap_if.active(False)
 
-    nextAlarmTime = getNextAlarm()
+    (nextAlarmTime, alarmFn) = getNextAlarm()
 
     while True:
         gc.collect()
@@ -228,7 +252,5 @@ if __name__ == "__main__":
             ntptime.settime()
         else:
             time.sleep(deltaNextAlarm)
-            sunriseSequence(3600.0)
-            time.sleep(15*60)
-            setColour(2000, 0.0)
-            nextAlarmTime = getNextAlarm()
+            locals()[alarmFn]()
+            (nextAlarmTime, alarmFn) = getNextAlarm()
