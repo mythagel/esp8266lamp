@@ -8,10 +8,10 @@ import settings
 
 # ESP8266 based sunrise alarm clock for Mirabella Genio Wi-Fi 7W LED Tube Lamp
 # NOTE: These pins match hardware for an esp-12 transplanted unit.
-redPwm = machine.PWM(machine.Pin(4), freq=100)
-greenPwm = machine.PWM(machine.Pin(12), freq=100)
-bluePwm = machine.PWM(machine.Pin(14), freq=100)
-whitePwm = machine.PWM(machine.Pin(5), freq=100)
+redPwm = machine.PWM(machine.Pin(4), freq=1000)
+greenPwm = machine.PWM(machine.Pin(12), freq=1000)
+bluePwm = machine.PWM(machine.Pin(14), freq=1000)
+whitePwm = machine.PWM(machine.Pin(5), freq=1000)
 
 sw = machine.ADC(0)
 
