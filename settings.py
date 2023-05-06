@@ -2,17 +2,17 @@
 alarm = [
     {
         'time': (7, 0),
-        'days': [0, 1, 2, 3, 4]
+        'days': [0, 1, 2, 3, 4],
         'action': 'sunriseSequence'
     },
     {
-        'time': (20, 0),
-        'days': [0, 1, 2, 3, 4, 5, 6]
+        'time': (21, 0),
+        'days': [0, 1, 2, 3, 4, 5, 6],
         'action': 'bedtimeSequence'
-    },
+    }
 ]
 
-colour = (0, 0, 255)
+colour = (51, 0, 255)
 
 # Australia/Melbourne
 tzinfo = [

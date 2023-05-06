@@ -170,7 +170,7 @@ def getColour(ct : int, br : float):
 
 def setColour(ct : int, br : float):
     (r, g, b) = getColour(ct, br)
-    setColourRGBW(r / 255.0, g / 255.0, b / 255.0, br)
+    setColourRGBW((r / 255.0) * br, (g / 255.0) * br, (b / 255.0) * br, 0)
 
 def setColourRGBW(r, g, b, w):
     r = int(r * 1023.0)
@@ -188,7 +188,7 @@ def sunriseSequence():
     duration = 3600.0
     # Fade ct over an hour
     interval = duration / (b - a)
-    br = 0
+    br = 0.1
     br_step = (1.0 - br) / (b - a)
     for ct in range(a, b):
         setColour(ct, br*br)
