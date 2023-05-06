@@ -140,101 +140,6 @@ kelvin_table = {
     11900: (195, 210, 255),
     12000: (195, 209, 255)}
 
-# https://github.com/iamh2o/rgbw_colorspace_converter/
-def constrain(val, min, max):
-    ret = val
-    if val <= min:
-        ret = min
-    if val >= max:
-        ret = max
-    return ret
-
-# https://en.wikipedia.org/wiki/HSL_and_HSV
-def rgb_to_hsi(r, g, b):
-    r = constrain(float(r) / 255.0, 0.0, 1.0)
-    g = constrain(float(g) / 255.0, 0.0, 1.0)
-    b = constrain(float(b) / 255.0, 0.0, 1.0)
-    intensity = 0.33333 * (r + g + b)
-
-    M = max(r, g, b)
-    m = min(r, g, b)
-    C = M - m  # noqa
-
-    saturation = 0.0
-    if intensity == 0.0:
-        saturation = 0.0
-    else:
-        saturation = 1.0 - (m / intensity)
-
-    hue = 0
-    if M == m:
-        hue = 0
-    if M == r:
-        if M == m:
-            hue = 0.0
-        else:
-            hue = 60.0 * (0.0 + ((g - b) / (M - m)))
-    if M == g:
-        if M == m:
-            hue = 0.0
-        else:
-            hue = 60.0 * (2.0 + ((b - r) / (M - m)))
-    if M == b:
-        if M == m:
-            hue = 0.0
-        else:
-            hue = 60.0 * (4.0 + ((r - g) / (M - m)))
-    if hue < 0.0:
-        hue = hue + 360
-
-    return (hue, abs(saturation), intensity)
-
-# https://www.neltnerlabs.com/saikoled/how-to-convert-from-hsi-to-rgb-white
-def hsi_to_rgbw(H, S, I):
-    r = 0
-    g = 0
-    b = 0
-    w = 0
-    cos_h = 0.0
-    cos_1047_h = 0.0
-
-    H = float(math.fmod(H, 360))  # cycle H around to 0-360 degrees
-    H = 3.14159 * H / 180.0  # Convert to radians.
-    S = constrain(S, 0.0, 1.0)
-    I = constrain(I, 0.0, 1.0)
-
-    if H < 2.09439:
-        cos_h = math.cos(H)
-        cos_1047_h = math.cos(1.047196667 - H)
-        r = S * 255.0 * I / 3.0 * (1.0 + cos_h / cos_1047_h)
-        g = S * 255.0 * I / 3.0 * (1.0 + (1.0 - cos_h / cos_1047_h))
-        b = 0.0
-        w = 255.0 * (1.0 - S) * I
-    elif H < 4.188787:
-        H = H - 2.09439
-        cos_h = math.cos(H)
-        cos_1047_h = math.cos(1.047196667 - H)
-        g = S * 255.0 * I / 3.0 * (1.0 + cos_h / cos_1047_h)
-        b = S * 255.0 * I / 3.0 * (1.0 + (1.0 - cos_h / cos_1047_h))
-        r = 0.0
-        w = 255.0 * (1.0 - S) * I
-    else:
-        H = H - 4.188787
-        cos_h = math.cos(H)
-        cos_1047_h = math.cos(1.047196667 - H)
-        b = S * 255.0 * I / 3.0 * (1.0 + cos_h / cos_1047_h)
-        r = S * 255.0 * I / 3.0 * (1.0 + (1.0 - cos_h / cos_1047_h))
-        g = 0.0
-        w = 255.0 * (1.0 - S) * I
-
-    return (
-        int(constrain(r * 3, 0, 255)),
-        int(constrain(g * 3, 0, 255)),
-        int(constrain(b * 3, 0, 255)),
-        int(constrain(w, 0, 255)),
-    )  # for some reason, the rgb numbers need to be X3...
-
-def clamp(x : float): return max(0.0, min(x, 1.0))
 def lerp(a: float, b: float, t: float) -> float: return (1 - t) * a + t * b
 def getColour(ct : int, br : float):
     min_rgb = None
@@ -261,13 +166,11 @@ def getColour(ct : int, br : float):
     elif max_rgb is not None:
         (rgb, _) = max_rgb
 
-    (r, g, b) = rgb
-    (h, s, i) = rgb_to_hsi(r, g, b)
-    return hsi_to_rgbw(h, s, i * br)
+    return rgb
 
 def setColour(ct : int, br : float):
-    (r, g, b, w) = getColour(ct, br)
-    setColourRGBW(r / 255.0, g / 255.0, b / 255.0, w / 255.0)
+    (r, g, b) = getColour(ct, br)
+    setColourRGBW(r / 255.0, g / 255.0, b / 255.0, br)
 
 def setColourRGBW(r, g, b, w):
     r = int(r * 1023.0)
